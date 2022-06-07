@@ -1,0 +1,10 @@
+//
+// Created by sudta on 6/6/2022.
+//
+
+#ifndef ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_
+#define ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_
+
+#define HELLO_FROM_ENGINE "Hello from engine"
+
+#endif //ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_
