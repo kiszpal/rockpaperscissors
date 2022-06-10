@@ -159,6 +159,7 @@ int main(void)
    - 1 when picked in prev iter
    - 2 when picked in current iter
    */
+  bool game_over_win = false;
   struct GameState gs = game_state_init();
   struct Location cursor = {0, 0};
   enum Team player_team;
@@ -324,16 +325,30 @@ int main(void)
               if (result == ATTACKER_WIN)
               {
                 gs.pieces[selected_piece].location = cursor;
-                remove_piece(&gs, def_id);
                 selected_piece = -1;
-                gs.screen = GAME;
+                if (gs.pieces[def_id].is_flag)
+                {
+                  game_over_win = true;
+                  gs.screen = GAME_OVER;
+                }
+                else
+                  gs.screen = GAME;
+                remove_piece(&gs, def_id);
                 break;
               }
               else if (result == DEFENDER_WIN)
               {
+                if (gs.pieces[selected_piece].is_flag)
+                {
+                  game_over_win = false;
+                  gs.screen = GAME_OVER;
+                }
+                else
+                {
+                  gs.screen = GAME;
+                }
                 remove_piece(&gs, selected_piece);
                 selected_piece = -1;
-                gs.screen = GAME;
                 break;
               }
               else
