@@ -50,6 +50,14 @@ void clear_screen() {
 #endif
 }
 
+void piece_print(struct Piece p) {
+  printf("Piece { team: \"%s\", location: { %d, %d }, type: %d }",
+         p.team == RED ? "RED" : "BLUE",
+         p.location.x,
+         p.location.y,
+         p.type);
+}
+
 void vertical_border(int len) {
   assert(len > 0);
   char buf[len + 2 + 1];
@@ -58,7 +66,7 @@ void vertical_border(int len) {
   printf("%s\n", buf);
 }
 
-void print_board(struct GameState *gs, struct Location cursor, bool c_visible) {
+void print_board(struct GameState *gs, struct Location cursor, bool c_visible, int selected_piece) {
   vertical_border(BOARD_WIDTH);
   for (int y = 0; y < BOARD_HEIGHT; y++) {
     printf("#");
@@ -73,7 +81,7 @@ void print_board(struct GameState *gs, struct Location cursor, bool c_visible) {
         } else {
           if (p.location.x == x && p.location.y == y) {
             found_piece = true;
-            p.team == RED ? printf(BRED) : printf(BBLU);
+            printf(i == selected_piece ? YEL : p.team == RED ? BRED : BBLU);
             switch (p.type) {
               case ROCK:printf("R");
                 break;
@@ -120,13 +128,15 @@ int main(void) {
   struct GameState gs = game_state_init();
   struct Location cursor = {0, 0};
   enum Team player_team;
+  int selected_piece = -1;
   bool cursor_visible = false;
   int c;
   do {
     cursor_visible = !cursor_visible;
     if (gs.screen != MAIN_MENU) puts(player_team == RED ? BRED"RED's turn"reset : BBLU"BLUE's turn"reset);
     switch (gs.screen) {
-      case MAIN_MENU:puts("MAIN_MENU");
+      case MAIN_MENU: {
+        puts("MAIN_MENU");
         puts("Press R or B to select team");
         if (c == 'r' || c == 'b') {
           if (c == 'r') {
@@ -136,13 +146,14 @@ int main(void) {
           gs.screen = PLACE_FLAG;
         }
         break;
-      case PLACE_FLAG:puts("PLACE_FLAG");
-        puts("\nMove with WASD! Place flag with F!");
-        print_board(&gs, cursor, cursor_visible);
+      }
+      case PLACE_FLAG: {
+        puts("PLACE_FLAG");
+        puts("Move with WASD! Place flag with F!");
+        print_board(&gs, cursor, cursor_visible, selected_piece);
         if (!move_cursor(&cursor, c) && c == 'f') {
           for (int i = 0; i < gs.pieces_length; i++) {
-            if (cursor.x == gs.pieces[i].location.x && cursor.y == gs.pieces[i].location.y
-                && gs.pieces[i].team == player_team) {
+            if (location_eq(cursor, gs.pieces[i].location) && gs.pieces[i].team == player_team) {
               gs.pieces[i].is_flag = true;
               gs.screen = PLACE_TRAP;
               break;
@@ -150,13 +161,15 @@ int main(void) {
           }
         }
         break;
-      case PLACE_TRAP:puts("PLACE_TRAP\n");
-        puts("\nMove with WASD! Place trap with F!");
-        print_board(&gs, cursor, cursor_visible);
+      }
+      case PLACE_TRAP: {
+        puts("PLACE_TRAP\n");
+        puts("Move with WASD! Place trap with F!");
+        print_board(&gs, cursor, cursor_visible, selected_piece);
         if (!move_cursor(&cursor, c) && c == 'f') {
           for (int i = 0; i < gs.pieces_length; i++) {
-            if (cursor.x == gs.pieces[i].location.x && cursor.y == gs.pieces[i].location.y
-                && gs.pieces[i].team == player_team && !gs.pieces[i].is_flag) {
+            if (location_eq(cursor, gs.pieces[i].location) && gs.pieces[i].team == player_team
+                && !gs.pieces[i].is_flag) {
               gs.pieces[i].type = TRAP_INVISIBLE;
               gs.screen = GAME;
               break;
@@ -164,17 +177,117 @@ int main(void) {
           }
         }
         break;
-      case GAME:puts("GAME\n");
+      }
+      case GAME: {
+        puts("GAME\n");
+        selected_piece = -1;
+        puts("Move with WASD! Select piece with F!");
+        print_board(&gs, cursor, cursor_visible, selected_piece);
+        if (!move_cursor(&cursor, c) && c == 'f') {
+          for (int i = 0; i < gs.pieces_length; i++) {
+            if (location_eq(cursor, gs.pieces[i].location) && gs.pieces[i].team == player_team
+                && gs.pieces[i].type != TRAP_INVISIBLE && gs.pieces[i].type != TRAP) {
+              selected_piece = i;
+              gs.screen = MOVE_PIECE;
+              break;
+            }
+          }
+        }
         break;
-      case PICK_TYPE:puts("PICK_TYPE\n");
+      }
+      case MOVE_PIECE: {
+        assert(selected_piece != -1);
+        puts("MOVE_PIECE\n");
+        puts("Move with WASD! Move piece with F!");
+        print_board(&gs, cursor, cursor_visible, selected_piece);
+        if (!move_cursor(&cursor, c) && c == 'f') {
+          {
+            int dx = abs(gs.pieces[selected_piece].location.x - cursor.x);
+            int dy = abs(gs.pieces[selected_piece].location.y - cursor.y);
+            if (dx > 1 || dy > 1 || (dx + dy == 0)) {
+              puts("Invalid move!");
+              break;
+            }
+          } // move distance
+
+          bool occupied = false;
+          bool invalid = false;
+          for (int i = 0; i < gs.pieces_length; i++) {
+            if (i == selected_piece) continue;
+            if (location_eq(gs.pieces[i].location, cursor)) {
+              occupied = true;
+              invalid = gs.pieces[selected_piece].team == gs.pieces[i].team;
+              break;
+            }
+          }
+
+          if (invalid) {
+            puts("Invalid move!");
+            break;
+          }
+
+          if (!occupied) {
+            // move
+            gs.pieces[selected_piece].location = cursor;
+          } else {
+            // fight
+
+            for (int def_id = 0; def_id < gs.pieces_length; def_id++) {
+              if (!location_eq(cursor, gs.pieces[def_id].location))
+                continue;
+              // found the enemy
+              piece_print(gs.pieces[def_id]);
+              piece_print(gs.pieces[selected_piece]);
+              puts("");
+
+              if (gs.pieces[def_id].type == TRAP || gs.pieces[def_id].type == TRAP_INVISIBLE) {
+                gs.pieces[def_id].type = TRAP;
+                // def won, delete attacker
+                remove_piece(&gs, selected_piece);
+                selected_piece = -1;
+                gs.screen = GAME;
+                break;
+              } else {
+                enum FightResult result = fight(gs.pieces[selected_piece].type, gs.pieces[def_id].type);
+                if (result == ATTACKER_WIN) {
+                  gs.pieces[selected_piece].location = cursor;
+                  remove_piece(&gs, def_id);
+                  selected_piece = -1;
+                  gs.screen = GAME;
+                  break;
+                } else if (result == DEFENDER_WIN) {
+                  remove_piece(&gs, selected_piece);
+                  selected_piece = -1;
+                  gs.screen = GAME;
+                  break;
+                } else {
+                  assert(result == DRAW);
+                  gs.pieces[selected_piece].location = cursor;
+                  remove_piece(&gs, def_id);
+                  selected_piece = -1;
+                  gs.screen = GAME;
+                  break;
+                }
+              }
+            }
+          }
+        }
         break;
-      case GAME_OVER:puts("GAME_OVER\n");
+      }
+      case PICK_TYPE: {
+        puts("PICK_TYPE\n");
         break;
+      }
+      case GAME_OVER: {
+        puts("GAME_OVER\n");
+        break;
+      }
     };
+    puts("");
     usleep(100 * 1000);
     if (kbhit()) c = getchar();
     else c = 0;
-    clear_screen();
+    //   clear_screen();
   } while (c != 'q');
   puts("\nBye!\n");
   return 0;

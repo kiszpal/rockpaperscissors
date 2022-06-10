@@ -17,10 +17,10 @@ struct Location location_init(int x, int y) {
 
 enum FightResult fight(enum Type attacker, enum Type defender) {
   if (attacker == NONE || defender == NONE || attacker == defender)
-    return Tie;
+    return DRAW;
   else
     return (attacker == ROCK && defender == PAPER) || (attacker == PAPER && defender == SCISSORS)
-               || (attacker == SCISSORS && defender == ROCK) ? Lose : Win;
+               || (attacker == SCISSORS && defender == ROCK) ? DEFENDER_WIN : ATTACKER_WIN;
 }
 
 bool remove_piece(struct GameState *game_state, int idx) {

@@ -6,12 +6,13 @@
 #define ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_
 
 #include <stdbool.h>
+#include "stdio.h"
 
 #define BOARD_WIDTH 7
 #define BOARD_HEIGHT 6
 
-#define max(a,b) a>b?a:b
-#define min(a,b) a<b?a:b
+#define max(a, b) a>b?a:b
+#define min(a, b) a<b?a:b
 
 enum Team {
   RED, BLUE,
@@ -20,10 +21,10 @@ enum Type {
   ROCK, PAPER, SCISSORS, NONE, TRAP, TRAP_INVISIBLE
 };
 enum Screen {
-  MAIN_MENU, PLACE_FLAG, PLACE_TRAP, GAME, PICK_TYPE, GAME_OVER,
+  MAIN_MENU, PLACE_FLAG, PLACE_TRAP, GAME, MOVE_PIECE, PICK_TYPE, GAME_OVER,
 };
 enum FightResult {
-  Win, Lose, Tie,
+  ATTACKER_WIN, DEFENDER_WIN, DRAW,
 };
 struct Location {
   int x;
