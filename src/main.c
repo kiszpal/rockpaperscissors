@@ -168,6 +168,25 @@ int main(void)
   int c;
   do
   {
+    {
+      bool has_my_flag = false;
+      bool has_enemy_flag = false;
+      for (int i = 0; i < gs.pieces_length; i++)
+      {
+        if (gs.pieces[i].is_flag)
+        {
+          if (gs.pieces[i].team == player_team)
+            has_my_flag = true;
+          else
+            has_enemy_flag = true;
+        }
+      }
+      if (!has_my_flag || !has_enemy_flag)
+      {
+        gs.screen = GAME_OVER;
+        game_over_win = has_my_flag;
+      }
+    }
     cursor_visible = !cursor_visible;
     if (type_picked != 0)
       type_picked -= 1;
@@ -396,6 +415,7 @@ int main(void)
     case GAME_OVER:
     {
       puts("GAME_OVER\n");
+      printf("You %d!", game_over_win ? "won" : "lost");
       break;
     }
     };
