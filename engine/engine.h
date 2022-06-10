@@ -6,37 +6,58 @@
 #define ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_
 
 #include <stdbool.h>
-#include "stdio.h"
+#include <stdlib.h>
 
 #define BOARD_WIDTH 7
 #define BOARD_HEIGHT 6
 
-#define max(a, b) a>b?a:b
-#define min(a, b) a<b?a:b
+#define max(a, b) a > b ? a : b
+#define min(a, b) a < b ? a : b
 
-enum Team {
-  RED, BLUE,
+enum Team
+{
+  RED,
+  BLUE,
 };
-enum Type {
-  ROCK, PAPER, SCISSORS, NONE, TRAP, TRAP_INVISIBLE
+enum Type
+{
+  ROCK,
+  PAPER,
+  SCISSORS,
+  NONE,
+  TRAP,
+  TRAP_INVISIBLE
 };
-enum Screen {
-  MAIN_MENU, PLACE_FLAG, PLACE_TRAP, GAME, MOVE_PIECE, PICK_TYPE, GAME_OVER,
+enum Screen
+{
+  MAIN_MENU,
+  PLACE_FLAG,
+  PLACE_TRAP,
+  GAME,
+  MOVE_PIECE,
+  PICK_TYPE,
+  GAME_OVER,
 };
-enum FightResult {
-  ATTACKER_WIN, DEFENDER_WIN, DRAW,
+enum FightResult
+{
+  ATTACKER_WIN,
+  DEFENDER_WIN,
+  DRAW,
 };
-struct Location {
+struct Location
+{
   int x;
   int y;
 };
-struct Piece {
+struct Piece
+{
   struct Location location;
   enum Team team;
   enum Type type;
   bool is_flag;
 };
-struct GameState {
+struct GameState
+{
   struct Piece pieces[BOARD_WIDTH * BOARD_HEIGHT];
   int pieces_length;
   enum Screen screen;
@@ -53,6 +74,15 @@ enum FightResult fight(enum Type attacker, enum Type defender);
 
 struct GameState game_state_init();
 
+bool is_trap(enum Type type)
+{
+  return type == TRAP || type == TRAP_INVISIBLE;
+}
 
+enum Type random_type()
+{
+  enum Type TYPES[] = {ROCK, PAPER, SCISSORS};
+  return TYPES[random() % 3];
+}
 
-#endif //ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_
+#endif // ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_

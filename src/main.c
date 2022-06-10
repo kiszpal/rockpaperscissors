@@ -153,6 +153,12 @@ bool move_cursor(struct Location *loc, int control)
 
 int main(void)
 {
+  int type_picked = 0;
+  /*
+   - 0 when inactive,
+   - 1 when picked in prev iter
+   - 2 when picked in current iter
+   */
   struct GameState gs = game_state_init();
   struct Location cursor = {0, 0};
   enum Team player_team;
@@ -162,6 +168,9 @@ int main(void)
   do
   {
     cursor_visible = !cursor_visible;
+    if (type_picked != 0)
+      type_picked -= 1;
+
     if (gs.screen != MAIN_MENU)
       puts(player_team == RED ? BRED "RED's turn" reset : BBLU "BLUE's turn" reset);
     switch (gs.screen)
@@ -224,14 +233,15 @@ int main(void)
     case GAME:
     {
       puts("GAME\n");
-      selected_piece = -1;
       puts("Move with WASD! Select piece with F!");
+      selected_piece = -1;
+
       print_board(&gs, cursor, cursor_visible, selected_piece);
       if (!move_cursor(&cursor, c) && c == 'f')
       {
         for (int i = 0; i < gs.pieces_length; i++)
         {
-          if (location_eq(cursor, gs.pieces[i].location) && gs.pieces[i].team == player_team && gs.pieces[i].type != TRAP_INVISIBLE && gs.pieces[i].type != TRAP)
+          if (location_eq(cursor, gs.pieces[i].location) && gs.pieces[i].team == player_team && !is_trap(gs.pieces[i].type))
           {
             selected_piece = i;
             gs.screen = MOVE_PIECE;
@@ -247,7 +257,7 @@ int main(void)
       puts("MOVE_PIECE\n");
       puts("Move with WASD! Move piece with F!");
       print_board(&gs, cursor, cursor_visible, selected_piece);
-      if (!move_cursor(&cursor, c) && c == 'f')
+      if (!move_cursor(&cursor, c) && c == 'f' || type_picked == 1)
       {
         {
           int dx = abs(gs.pieces[selected_piece].location.x - cursor.x);
@@ -308,6 +318,8 @@ int main(void)
             }
             else
             {
+              if (gs.pieces[def_id].type == NONE || type_picked == 1)
+                gs.pieces[def_id].type = random_type();
               enum FightResult result = fight(gs.pieces[selected_piece].type, gs.pieces[def_id].type);
               if (result == ATTACKER_WIN)
               {
@@ -327,10 +339,7 @@ int main(void)
               else
               {
                 assert(result == DRAW);
-                gs.pieces[selected_piece].location = cursor;
-                remove_piece(&gs, def_id);
-                selected_piece = -1;
-                gs.screen = GAME;
+                gs.screen = PICK_TYPE;
                 break;
               }
             }
@@ -341,7 +350,32 @@ int main(void)
     }
     case PICK_TYPE:
     {
-      puts("PICK_TYPE\n");
+      assert(selected_piece != -1);
+      assert(!is_trap(gs.pieces[selected_piece].type));
+      puts("PICK_TYPE");
+      puts("PRESS A: rock, S: paper, D: scissors");
+      switch (c)
+      {
+      case 'a':
+      case 'A':
+        gs.pieces[selected_piece].type = ROCK;
+        type_picked = 2;
+        gs.screen = MOVE_PIECE;
+        break;
+      case 's':
+      case 'S':
+        gs.pieces[selected_piece].type = PAPER;
+        type_picked = 2;
+        gs.screen = MOVE_PIECE;
+      case 'd':
+      case 'D':
+        gs.pieces[selected_piece].type = SCISSORS;
+        type_picked = 2;
+        gs.screen = MOVE_PIECE;
+      default:
+        break;
+      }
+
       break;
     }
     case GAME_OVER:
