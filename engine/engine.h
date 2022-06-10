@@ -10,6 +10,9 @@
 #define BOARD_WIDTH 7
 #define BOARD_HEIGHT 6
 
+#define max(a,b) a>b?a:b
+#define min(a,b) a<b?a:b
+
 enum Team {
   RED, BLUE,
 };
@@ -48,5 +51,7 @@ struct Location location_init(int x, int y);
 enum FightResult fight(enum Type attacker, enum Type defender);
 
 struct GameState game_state_init();
+
+
 
 #endif //ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_
