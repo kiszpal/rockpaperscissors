@@ -55,6 +55,7 @@ struct Piece
   enum Team team;
   enum Type type;
   bool is_flag;
+  bool visible;
 };
 struct GameState
 {
@@ -74,15 +75,12 @@ enum FightResult fight(enum Type attacker, enum Type defender);
 
 struct GameState game_state_init();
 
-bool is_trap(enum Type type)
-{
-  return type == TRAP || type == TRAP_INVISIBLE;
-}
+bool is_trap(enum Type type);
 
-enum Type random_type()
-{
-  enum Type TYPES[] = {ROCK, PAPER, SCISSORS};
-  return TYPES[random() % 3];
-}
+enum Type random_type();
+
+void place_ai_flag(struct GameState *gs, enum Team team);
+
+void place_ai_trap(struct GameState *gs, enum Team team);
 
 #endif // ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_

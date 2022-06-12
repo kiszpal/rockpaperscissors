@@ -71,7 +71,7 @@ void vertical_border(int len)
   printf("%s\n", buf);
 }
 
-void print_board(struct GameState *gs, struct Location cursor, bool c_visible, int selected_piece)
+void print_board(struct GameState *gs, struct Location cursor, bool c_visible, int selected_piece, enum Team player_team)
 {
   vertical_border(BOARD_WIDTH);
   for (int y = 0; y < BOARD_HEIGHT; y++)
@@ -95,6 +95,8 @@ void print_board(struct GameState *gs, struct Location cursor, bool c_visible, i
             found_piece = true;
             printf(i == selected_piece ? YEL : p.team == RED ? BRED
                                                              : BBLU);
+            if(!p.visible){ printf("."); break;}
+            if(p.is_flag) printf(MAG);
             switch (p.type)
             {
             case ROCK:
@@ -165,10 +167,11 @@ int main(void)
   enum Team player_team;
   int selected_piece = -1;
   bool cursor_visible = false;
+  bool picked_flag = false;
   int c;
   do
   {
-    {
+    if(picked_flag){
       bool has_my_flag = false;
       bool has_enemy_flag = false;
       for (int i = 0; i < gs.pieces_length; i++)
@@ -210,13 +213,18 @@ int main(void)
           player_team = BLUE;
         gs.screen = PLACE_FLAG;
       }
+      for(int i = 0; i<gs.pieces_length;i++){
+          if(gs.pieces[i].team == player_team) {
+              gs.pieces[i].visible = true;
+          }
+      }
       break;
     }
     case PLACE_FLAG:
     {
       puts("PLACE_FLAG");
       puts("Move with WASD! Place flag with F!");
-      print_board(&gs, cursor, cursor_visible, selected_piece);
+      print_board(&gs, cursor, cursor_visible, selected_piece,player_team);
       if (!move_cursor(&cursor, c) && c == 'f')
       {
         for (int i = 0; i < gs.pieces_length; i++)
@@ -224,7 +232,9 @@ int main(void)
           if (location_eq(cursor, gs.pieces[i].location) && gs.pieces[i].team == player_team)
           {
             gs.pieces[i].is_flag = true;
+            picked_flag = true;
             gs.screen = PLACE_TRAP;
+            place_ai_flag(&gs, player_team);
             break;
           }
         }
@@ -235,15 +245,16 @@ int main(void)
     {
       puts("PLACE_TRAP\n");
       puts("Move with WASD! Place trap with F!");
-      print_board(&gs, cursor, cursor_visible, selected_piece);
+      print_board(&gs, cursor, cursor_visible, selected_piece,player_team);
       if (!move_cursor(&cursor, c) && c == 'f')
       {
         for (int i = 0; i < gs.pieces_length; i++)
         {
           if (location_eq(cursor, gs.pieces[i].location) && gs.pieces[i].team == player_team && !gs.pieces[i].is_flag)
           {
-            gs.pieces[i].type = TRAP_INVISIBLE;
+            gs.pieces[i].type = TRAP;
             gs.screen = GAME;
+              place_ai_trap(&gs,player_team);
             break;
           }
         }
@@ -256,7 +267,7 @@ int main(void)
       puts("Move with WASD! Select piece with F!");
       selected_piece = -1;
 
-      print_board(&gs, cursor, cursor_visible, selected_piece);
+      print_board(&gs, cursor, cursor_visible, selected_piece,player_team);
       if (!move_cursor(&cursor, c) && c == 'f')
       {
         for (int i = 0; i < gs.pieces_length; i++)
@@ -276,7 +287,7 @@ int main(void)
       assert(selected_piece != -1);
       puts("MOVE_PIECE\n");
       puts("Move with WASD! Move piece with F!");
-      print_board(&gs, cursor, cursor_visible, selected_piece);
+      print_board(&gs, cursor, cursor_visible, selected_piece,player_team);
       if (!move_cursor(&cursor, c) && c == 'f' || type_picked == 1)
       {
         {
@@ -313,6 +324,8 @@ int main(void)
         {
           // move
           gs.pieces[selected_piece].location = cursor;
+          selected_piece = -1;
+          gs.screen=GAME;
         }
         else
         {
@@ -333,6 +346,7 @@ int main(void)
               // def won, delete attacker
               remove_piece(&gs, selected_piece);
               selected_piece = -1;
+              gs.pieces[def_id].visible=true;
               gs.screen = GAME;
               break;
             }
@@ -367,6 +381,7 @@ int main(void)
                   gs.screen = GAME;
                 }
                 remove_piece(&gs, selected_piece);
+                gs.pieces[def_id].visible=true;
                 selected_piece = -1;
                 break;
               }
@@ -415,7 +430,7 @@ int main(void)
     case GAME_OVER:
     {
       puts("GAME_OVER\n");
-      printf("You %d!", game_over_win ? "won" : "lost");
+      printf("You %s!", game_over_win ? "won" : "lost");
       break;
     }
     };

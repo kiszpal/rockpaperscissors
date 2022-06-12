@@ -38,8 +38,9 @@ struct Piece piece_init(struct Location location, enum Team team)
   struct Piece piece;
   piece.location = location;
   piece.team = team;
-  piece.type = NONE;
+  piece.type = random_type();
   piece.is_flag = false;
+  piece.visible= false;
   return piece;
 }
 
@@ -63,4 +64,39 @@ struct GameState game_state_init()
 bool location_eq(struct Location l1, struct Location l2)
 {
   return l1.x == l2.x && l1.y == l2.y;
+}
+
+enum Type random_type()
+{
+    enum Type TYPES[] = {ROCK, PAPER, SCISSORS};
+    return TYPES[random() % 3];
+}
+
+bool is_trap(enum Type type)
+{
+    return type == TRAP || type == TRAP_INVISIBLE;
+}
+
+void place_ai_flag(struct GameState *gs, enum Team team){
+    if(team == RED){
+        int upper = BOARD_WIDTH * 2;
+        int lower = 0;
+        gs->pieces[(rand() % (upper - lower + 1)) + lower].is_flag=true;
+    }else{
+        int upper = BOARD_WIDTH * 4;
+        int lower = BOARD_WIDTH * 2 + 1;
+        gs->pieces[(rand() % (upper - lower + 1)) + lower].is_flag=true;
+    }
+}
+
+void place_ai_trap(struct GameState *gs, enum Team team){
+    if(team == RED){
+        int upper = BOARD_WIDTH * 2;
+        int lower = 0;
+        gs->pieces[(rand() % (upper - lower + 1)) + lower].type=TRAP_INVISIBLE;
+    }else{
+        int upper = BOARD_WIDTH * 4;
+        int lower = BOARD_WIDTH * 2 + 1;
+        gs->pieces[(rand() % (upper - lower + 1)) + lower].type=TRAP;
+    }
 }
