@@ -40,13 +40,13 @@ static void test_location_eq(){
 static void test_location_init(){
     struct Location l1,t1,l2,t2,l3,t3;
     l1 = location_init(2,2);
-    l2 = location_init(3,6);
-    l3 = location_init(7,3);
+    l2 = location_init(3,5);
+    l3 = location_init(6,3);
     t1.x = 2;
     t1.y = 2;
     t2.x = 3;
     t2.y = 4;
-    t3.x = 6;
+    t3.x = 5;
     t3.y = 2;
     CU_ASSERT_EQUAL(l1.x,t1.x);
     CU_ASSERT_EQUAL(l1.y,t1.y);
@@ -63,7 +63,7 @@ static void test_fight(){
     CU_ASSERT_EQUAL(fight(PAPER,PAPER),DRAW);
     CU_ASSERT_EQUAL(fight(PAPER,ROCK),ATTACKER_WIN);
     CU_ASSERT_EQUAL(fight(PAPER,SCISSORS),DEFENDER_WIN);
-    CU_ASSERT_EQUAL(fight(SCISSORS,SCISSORS),DEFENDER_WIN);
+    CU_ASSERT_EQUAL(fight(SCISSORS,SCISSORS),DRAW);
     CU_ASSERT_EQUAL(fight(SCISSORS,ROCK),DEFENDER_WIN);
     CU_ASSERT_EQUAL(fight(SCISSORS,PAPER),ATTACKER_WIN);
 }

@@ -12,7 +12,7 @@ add_executable(TestA src/utest.c src/utest_engine.h src/utest_engine.c)
 
 
 target_link_libraries(RockPaperScissors RPSEngine ${CURSES_LIBRARIES})
-target_link_libraries(TestA RPSEngine ${CUNIT_LIBRARIES})
+target_link_libraries(TestA RPSEngine /usr/lib/libcunit.so)
 
 
 target_include_directories(RockPaperScissors PUBLIC "${PROJECT_SOURCE_DIR}/engine")
