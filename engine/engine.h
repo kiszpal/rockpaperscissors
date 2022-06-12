@@ -56,6 +56,7 @@ struct Piece
   enum Type type;
   bool is_flag;
   bool visible;
+  bool visible_for_ai;
 };
 struct GameState
 {
@@ -82,5 +83,7 @@ enum Type random_type();
 void place_ai_flag(struct GameState *gs, enum Team team);
 
 void place_ai_trap(struct GameState *gs, enum Team team);
+
+bool move_cursor(struct Location *loc, int control);
 
 #endif // ROCK_PAPER_SCISSORS_ENGINE_ENGINE_H_

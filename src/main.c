@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+//#include "ai.h"
 #include <time.h>
 #ifdef _WIN32
 #include <conio.h>
@@ -128,30 +129,7 @@ void print_board(struct GameState *gs, struct Location cursor, bool c_visible, i
   vertical_border(BOARD_WIDTH);
 }
 
-bool move_cursor(struct Location *loc, int control)
-{
-  switch (control)
-  {
-  case 'a':
-  case 'A':
-    loc->x = max(loc->x - 1, 0);
-    return true;
-  case 'w':
-  case 'W':
-    loc->y = max(loc->y - 1, 0);
-    return true;
-  case 's':
-  case 'S':
-    loc->y = min(loc->y + 1, BOARD_HEIGHT - 1);
-    return true;
-  case 'd':
-  case 'D':
-    loc->x = min(loc->x + 1, BOARD_WIDTH - 1);
-    return true;
-  default:
-    return false;
-  }
-}
+
 
 int main(void)
 {

@@ -41,6 +41,7 @@ struct Piece piece_init(struct Location location, enum Team team)
   piece.type = random_type();
   piece.is_flag = false;
   piece.visible= false;
+  piece.visible_for_ai = false;
   return piece;
 }
 
@@ -97,6 +98,31 @@ void place_ai_trap(struct GameState *gs, enum Team team){
     }else{
         int upper = BOARD_WIDTH * 4;
         int lower = BOARD_WIDTH * 2 + 1;
-        gs->pieces[(rand() % (upper - lower + 1)) + lower].type=TRAP;
+        gs->pieces[(rand() % (upper - lower + 1)) + lower].type=TRAP_INVISIBLE;
+    }
+}
+
+bool move_cursor(struct Location *loc, int control)
+{
+    switch (control)
+    {
+        case 'a':
+        case 'A':
+            loc->x = max(loc->x - 1, 0);
+            return true;
+        case 'w':
+        case 'W':
+            loc->y = max(loc->y - 1, 0);
+            return true;
+        case 's':
+        case 'S':
+            loc->y = min(loc->y + 1, BOARD_HEIGHT - 1);
+            return true;
+        case 'd':
+        case 'D':
+            loc->x = min(loc->x + 1, BOARD_WIDTH - 1);
+            return true;
+        default:
+            return false;
     }
 }
